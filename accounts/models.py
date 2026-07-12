@@ -5,18 +5,6 @@ from django.utils import timezone
 from .validators import phone_validator
 from .managers import UserManager
 
-# class UserManager(DjangoUserManager):
-#     """
-#     Кастомний менеджер для User.
-
-#     Наслідується від вбудованого Django UserManager (щоб create_user/
-#     create_superuser продовжували працювати як звично), але приховує
-#     м'яко видалених користувачів зі стандартного queryset.
-#     """
-
-#     def get_queryset(self):
-#         return super().get_queryset().filter(is_deleted=False)
-
 
 class User(AbstractUser):
 

@@ -42,8 +42,6 @@ class Booking(models.Model):
             raise ValidationError(
                 'The end date must be later than the start date.')
 
-        # Перевірка перетину дат враховує лише "живі" бронювання
-        # (не скасовані і не відхилені) того самого житла.
         overlapping = Booking.objects.filter(
             listing=self.listing,
             status__in=[self.Status.PENDING, self.Status.CONFIRMED],
