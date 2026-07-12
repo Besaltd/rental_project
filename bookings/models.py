@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 from listings.models import Listing
 
@@ -41,6 +42,9 @@ class Booking(models.Model):
         if self.end_date <= self.start_date:
             raise ValidationError(
                 'The end date must be later than the start date.')
+
+        if self.pk is None and self.start_date < timezone.localdate():
+            raise ValidationError('The start date cannot be in the past')
 
         overlapping = Booking.objects.filter(
             listing=self.listing,
