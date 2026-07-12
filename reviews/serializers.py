@@ -28,3 +28,11 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'booking', 'rating', 'comment']
         read_only_fields = ['id']
+
+    def validate_booking(self, booking):
+        user = self.context['request'].user
+        if not user.can_review(booking):
+            raise serializers.ValidationError(
+                "You cannot leave a review for this reservation"
+            )
+        return booking
