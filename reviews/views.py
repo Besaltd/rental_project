@@ -3,7 +3,7 @@ from rest_framework import viewsets
 
 from .models import Review
 from .permissions import IsReviewAuthorOrReadOnly
-from .serializers import ReviewCreateSerializer, ReviewSerializer
+from .serializers import ReviewCreateSerializer, ReviewSerializer, ReviewUpdateSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -19,6 +19,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return ReviewCreateSerializer
+        if self.action in ('update', 'partial_update'):
+            return ReviewUpdateSerializer
         return ReviewSerializer
 
     def get_permissions(self):

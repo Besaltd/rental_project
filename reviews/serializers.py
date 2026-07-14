@@ -36,3 +36,10 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
                 "You cannot leave a review for this reservation"
             )
         return booking
+
+
+class ReviewUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['id', 'booking', 'listing', 'author', 'rating', 'comment']
+        read_only_fields = ['id', 'booking', 'listing', 'author']

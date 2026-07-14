@@ -45,9 +45,9 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class BookingStatusUpdateSerializer(serializers.ModelSerializer):
+# class BookingStatusUpdateSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Booking
-        fields = ['id', 'status']
-        read_only_fields = ['id']
+#     class Meta:
+#         model = Booking
+#         fields = ['id', 'status']
+#         read_only_fields = ['id']
