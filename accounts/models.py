@@ -24,11 +24,12 @@ class User(AbstractUser):
         validators=[phone_validator],
     )
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
-    # `objects` — менеджер за замовчуванням, приховує видалених користувачів.
-    # `all_objects` — доступ без фільтрації (наприклад, для адмінки).
     objects = UserManager()
     all_objects = DjangoUserManager()
 
