@@ -81,6 +81,11 @@ class BookingViewSet(viewsets.ModelViewSet):
                 {'detail': 'This reservation is no longer active'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        if booking.start_date <= timezone.localdate():
+            return Response(
+                {'detail': 'You can cancel your reservation only up until the check-in date.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         booking.status = Booking.Status.CANCELLED
         booking.save()
         return Response(BookingSerializer(booking).data)

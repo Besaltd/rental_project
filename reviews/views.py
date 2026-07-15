@@ -1,5 +1,7 @@
+from django.db import IntegrityError
 from rest_framework import permissions as drf_permissions
-from rest_framework import viewsets
+from rest_framework import viewsets, status, serializers
+from rest_framework.response import Response
 
 from .models import Review
 from .permissions import IsReviewAuthorOrReadOnly
@@ -29,6 +31,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if self.action in ('update', 'partial_update', 'destroy'):
             return [drf_permissions.IsAuthenticated(), IsReviewAuthorOrReadOnly()]
         return [drf_permissions.AllowAny()]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except IntegrityError:
+            {'booking': 'A review for this reservation already exists.'}
 
     def perform_create(self, serializer):
         booking = serializer.validated_data['booking']

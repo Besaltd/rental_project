@@ -43,11 +43,3 @@ class BookingCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 exc.message_dict if hasattr(exc, 'message_dict') else exc.messages)
         return attrs
-
-
-# class BookingStatusUpdateSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = Booking
-#         fields = ['id', 'status']
-#         read_only_fields = ['id']

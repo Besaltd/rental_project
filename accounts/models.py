@@ -47,29 +47,18 @@ class User(AbstractUser):
         return self.role == self.Role.TENANT
 
     def owns(self, obj):
-        """
-        Перевірка, чи є користувач власником обʼєкта
-        (Listing, Booking тощо). obj повинен мати поле owner або tenant.
-        """
         owner_field = getattr(obj, 'owner_id', None) or getattr(
             obj, 'tenant_id', None)
         return owner_field == self.pk
 
     def can_review(self, booking):
-        """
-        Перевірка, чи може користувач залишити відгук на бронювання.
-        Усі умови мають бути істинними:
-        - користувач є орендарем саме цього бронювання
-        - статус бронювання CONFIRMED (проживання дійсно відбулось)
-        - відгук на це бронювання ще не залишений
-        """
         from bookings.models import Booking
 
         if booking.tenant_id != self.pk:
             return False
         if booking.status != Booking.Status.CONFIRMED:
             return False
-        if hasattr(booking, 'review') and booking.review is not None:
+        if hasattr(booking, 'review'):
             return False
         return True
 
