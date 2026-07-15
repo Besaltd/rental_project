@@ -1,9 +1,12 @@
 from django.db.models import Q
+from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions as drf_permissions
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from .filters import BookingFilter
 from .models import Booking
 from .permissions import IsBookingTenantOrListingOwner, IsTenant
 from .serializers import BookingCreateSerializer, BookingSerializer
@@ -12,6 +15,8 @@ from .serializers import BookingCreateSerializer, BookingSerializer
 class BookingViewSet(viewsets.ModelViewSet):
 
     http_method_names = ['get', 'post', 'head', 'options']
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = BookingFilter
 
     def get_queryset(self):
         user = self.request.user
