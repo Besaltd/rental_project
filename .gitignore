@@ -12,6 +12,7 @@ media/
 
 # Env 
 .env
+correctur.txt
 
 # Logs 
 logs/
