@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 
 from .models import User
 from .serializers import RegisterSerializer, UserSerializer, ChangePasswordSerializer
@@ -23,6 +24,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 class ChangePasswordView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(request=ChangePasswordSerializer, responses={200: None})
     def post(self, request):
         serializer = ChangePasswordSerializer(
             data=request.data, context={'request': request})
