@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+.env
+db.sqlite3
+logs/
+staticfiles/
+*.log
+.DS_Store
+.vscode/
+.idea/
+tests_flow/
+config/settings_test.py
+correctur.txt
