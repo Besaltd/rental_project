@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.db import models
 
 from .models import User
 
@@ -14,6 +15,6 @@ class UserAdmin(BaseUserAdmin):
          'fields': ('role', 'phone', 'is_deleted', 'deleted_at')}),
     )
 
-    def get_queryset(self, request):
-        # Адмінка має бачити й видалених користувачів (не лише objects).
+    def get_queryset(self, request) -> models.QuerySet:
+
         return self.model.all_objects.all()

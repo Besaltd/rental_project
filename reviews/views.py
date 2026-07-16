@@ -1,7 +1,6 @@
 from django.db import IntegrityError
 from rest_framework import permissions as drf_permissions
-from rest_framework import viewsets, status, serializers
-from rest_framework.response import Response
+from rest_framework import viewsets, serializers
 
 from .models import Review
 from .permissions import IsReviewAuthorOrReadOnly
@@ -36,7 +35,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
         try:
             return super().create(request, *args, **kwargs)
         except IntegrityError:
-            {'booking': 'A review for this reservation already exists.'}
+            raise serializers.ValidationError(
+                {'booking': 'A review for this reservation already exists.'}
+            )
 
     def perform_create(self, serializer):
         booking = serializer.validated_data['booking']
