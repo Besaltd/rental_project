@@ -1,4 +1,5 @@
 from django.conf import settings
+from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
@@ -32,6 +33,8 @@ class Booking(models.Model):
         default=Status.PENDING,
         db_index=True,
     )
+    total_price = models.DecimalField(
+        max_digits=10, decimal_places=2, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -59,6 +62,10 @@ class Booking(models.Model):
             )
 
     def save(self, *args, **kwargs):
+
+        if self.pk is None:
+            nights = (self.end_date - self.start_date).days
+            self.total_price = self.listing.price * Decimal(nights)
         self.full_clean()
         super().save(*args, **kwargs)
 

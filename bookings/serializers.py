@@ -18,9 +18,9 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         fields = [
             'id', 'listing', 'tenant', 'start_date', 'end_date',
-            'status', 'is_completed', 'created_at', 'updated_at',
+            'status', 'is_completed', 'created_at', 'updated_at', 'total_price',
         ]
-        read_only_fields = ['id', 'tenant',
+        read_only_fields = ['id', 'tenant', 'total_price',
                             'status', 'created_at', 'updated_at']
 
     @extend_schema_field(serializers.BooleanField)
@@ -34,8 +34,8 @@ class BookingCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = ['id', 'listing', 'start_date', 'end_date']
-        read_only_fields = ['id']
+        fields = ['id', 'listing', 'start_date', 'end_date', 'total_price']
+        read_only_fields = ['id', 'total_price']
 
     def validate(self, attrs):
         booking = Booking(
