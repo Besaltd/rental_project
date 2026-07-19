@@ -1,5 +1,6 @@
 from django.db.models import ProtectedError, Q
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import permissions as drf_permissions
 from rest_framework import status, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -11,6 +12,36 @@ from .permissions import IsLandlord, IsOwnerOrReadOnly
 from .serializers import ListingSerializer, ListingWriteSerializer
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary='Search listings',
+        description=(
+            'Public. Only active listings are returned, except that an '
+            'authenticated landlord also sees their own inactive ones. '
+            'Combine price/rooms/city/property_type filters, ?search= '
+            'for keywords in title/description, and ?ordering= for sorting.'
+        ),
+    ),
+    create=extend_schema(
+        summary='Create a listing',
+        description='Landlord role required. owner is set from the current user.',
+    ),
+    partial_update=extend_schema(
+        summary='Edit a listing',
+        description=(
+            'Owner only. Also used to toggle is_active — the API is the '
+            'only way to reactivate a listing once deactivated.'
+        ),
+    ),
+    destroy=extend_schema(
+        summary='Delete a listing',
+        description=(
+            'Owner only. Fails with 400 if the listing has any bookings — '
+            'deactivate it instead (see PATCH is_active) rather than deleting.'
+        ),
+    ),
+    retrieve=extend_schema(summary='Listing detail', description='Public.'),
+)
 class ListingViewSet(viewsets.ModelViewSet):
 
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]

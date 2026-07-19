@@ -1,4 +1,5 @@
 from django.db import IntegrityError
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import permissions as drf_permissions
 from rest_framework import viewsets, serializers
 
@@ -7,6 +8,40 @@ from .permissions import IsReviewAuthorOrReadOnly
 from .serializers import ReviewCreateSerializer, ReviewSerializer, ReviewUpdateSerializer
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary='List reviews',
+        description=(
+            'Public list of reviews. Use ?listing={id} to see reviews '
+            'for one specific listing — without it, all reviews across '
+            'the platform are returned.'
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='listing',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter reviews by listing id.',
+            ),
+        ],
+    ),
+    create=extend_schema(
+        summary='Leave a review',
+        description=(
+            'Only allowed for the tenant of a CONFIRMED booking whose '
+            'stay is already over (end_date has passed), and only once '
+            'per booking. See User.can_review for the exact rules.'
+        ),
+    ),
+    partial_update=extend_schema(
+        summary='Edit own review',
+        description='Only rating and comment can be changed; author only.',
+    ),
+    destroy=extend_schema(summary='Delete own review',
+                          description='Author only.'),
+    retrieve=extend_schema(summary='Review detail', description='Public.'),
+)
 class ReviewViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 

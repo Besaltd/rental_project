@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import permissions as drf_permissions
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -12,6 +13,30 @@ from .permissions import IsBookingTenantOrListingOwner, IsTenant
 from .serializers import BookingCreateSerializer, BookingSerializer
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary='List own bookings',
+        description=(
+            'A tenant sees their own bookings; a landlord sees bookings '
+            'made on their listings. Use the status/date/is_completed '
+            'query params to narrow the list down.'
+        ),
+    ),
+    create=extend_schema(
+        summary='Create a booking',
+        description=(
+            'Tenant role required. Cannot book your own listing, cannot '
+            'start in the past, and dates must not overlap an existing '
+            'pending/confirmed booking on the same listing. total_price '
+            'is calculated once (price × nights) and frozen — later '
+            'price changes on the listing do not affect it.'
+        ),
+    ),
+    retrieve=extend_schema(
+        summary='Booking detail',
+        description='Visible to the tenant who made it, or the owner of the listing.',
+    ),
+)
 class BookingViewSet(viewsets.ModelViewSet):
 
     http_method_names = ['get', 'post', 'head', 'options']

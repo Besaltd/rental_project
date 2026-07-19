@@ -5,8 +5,11 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenBlacklistView
-
+from .jwt_views import (
+    DocumentedTokenBlacklistView,
+    DocumentedTokenObtainPairView,
+    DocumentedTokenRefreshView,
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -17,13 +20,13 @@ urlpatterns = [
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 
     path('api/v1/auth/token/',
-         TokenObtainPairView.as_view(),
+         DocumentedTokenObtainPairView.as_view(),
          name='token_obtain_pair'),
     path('api/v1/auth/token/refresh/',
-         TokenRefreshView.as_view(),
+         DocumentedTokenRefreshView.as_view(),
          name='token_refresh'),
     path('api/v1/auth/token/blacklist/',
-         TokenBlacklistView.as_view(),
+         DocumentedTokenBlacklistView.as_view(),
          name='token_blacklist'),
     path('api/v1/accounts/', include('accounts.urls')),
     path('api/v1/listings/', include('listings.urls')),

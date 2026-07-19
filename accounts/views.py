@@ -1,4 +1,5 @@
-from rest_framework import generics, permissions
+from drf_spectacular.utils import extend_schema
+from rest_framework import generics, permissions, mixins
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
@@ -12,19 +13,51 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
+    @extend_schema(
+        summary='Register',
+        description=(
+            'Creates a new account. role is fixed at registration and '
+            'cannot be changed later via the API.'
+        ),
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
-class ProfileView(generics.RetrieveUpdateAPIView):
+
+class ProfileView(mixins.RetrieveModelMixin,
+                  mixins.UpdateModelMixin,
+                  generics.GenericAPIView,):
+
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         return self.request.user
 
+    @extend_schema(summary='Get own profile')
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    @extend_schema(summary='Edit own profile', description='role is read-only here')
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
 
 class ChangePasswordView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    @extend_schema(request=ChangePasswordSerializer, responses={200: None})
+    @extend_schema(
+        summary='Change password',
+        description=(
+            'Requires the current password. On success, all outstanding '
+            'refresh tokens for this user are blacklisted immediately — '
+            'the current access token stays valid until it naturally '
+            'expires (up to 60 minutes), since individual access tokens '
+            'cannot be revoked.'
+        ),
+        request=ChangePasswordSerializer,
+        responses={200: None},
+    )
     def post(self, request):
         serializer = ChangePasswordSerializer(
             data=request.data, context={'request': request})
