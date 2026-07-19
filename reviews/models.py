@@ -37,7 +37,8 @@ class Review(models.Model):
         ordering = ['-created_at']
 
     def clean(self):
-        # Автор відгуку має бути орендарем саме цього бронювання.
+        from django.utils import timezone
+
         if self.booking_id and self.booking.tenant_id != self.author_id:
             raise ValidationError(
                 'Only the renter who made this reservation can leave a review.'
@@ -45,6 +46,10 @@ class Review(models.Model):
         if self.booking_id and self.booking.status != Booking.Status.CONFIRMED:
             raise ValidationError(
                 'You can only leave a review for a confirmed reservation.'
+            )
+        if self.booking_id and self.booking.end_date >= timezone.localdate():
+            raise ValidationError(
+                'A rewiew can only be left after the stay is over'
             )
 
     def save(self, *args, **kwargs):

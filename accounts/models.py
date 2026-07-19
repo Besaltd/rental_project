@@ -54,10 +54,13 @@ class User(AbstractUser):
 
     def can_review(self, booking):
         from bookings.models import Booking
+        from django.utils import timezone
 
         if booking.tenant_id != self.pk:
             return False
         if booking.status != Booking.Status.CONFIRMED:
+            return False
+        if booking.end_date >= timezone.localdate():
             return False
         if hasattr(booking, 'review'):
             return False
