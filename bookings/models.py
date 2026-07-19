@@ -49,6 +49,9 @@ class Booking(models.Model):
         if self.pk is None and self.start_date < timezone.localdate():
             raise ValidationError('The start date cannot be in the past')
 
+        if self.tenant_id is not None and self.listing.owner_id == self.tenant_id:
+            raise ValidationError('You cannot book your own listing')
+
         overlapping = Booking.objects.filter(
             listing=self.listing,
             status__in=[self.Status.PENDING, self.Status.CONFIRMED],
