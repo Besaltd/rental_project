@@ -28,8 +28,14 @@ class Review(models.Model):
         null=True,
         related_name='reviews',
     )
-    rating = models.PositiveSmallIntegerField(validators=rating_validator)
-    comment = models.TextField(blank=True)
+    rating = models.PositiveSmallIntegerField(
+        validators=rating_validator,
+        help_text='Rating from 1 to 5'
+    )
+    comment = models.TextField(
+        blank=True,
+        help_text='Optional free-text comment'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

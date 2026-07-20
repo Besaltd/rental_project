@@ -25,16 +25,27 @@ class Booking(models.Model):
         null=True,
         related_name='bookings',
     )
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateField(
+        help_text='Check-on date (must not be in the past)')
+    end_date = models.DateField(
+        help_text='Check-out date (must be after start_date)'
+    )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.PENDING,
         db_index=True,
+        help_text=(
+            'pending: awaiting owner decision. confirmed: accepted by owner'
+            'rejected: declined by owner. cancelled: cancelled by tenant'
+        ),
     )
     total_price = models.DecimalField(
-        max_digits=10, decimal_places=2, editable=False)
+        max_digits=10,
+        decimal_places=2,
+        editable=False,
+        help_text='listing.price * number of nights, frozen at creation time'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

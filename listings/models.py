@@ -25,24 +25,28 @@ class Listing(models.Model):
         decimal_places=2,
         validators=price_validator,
         db_index=True,
+        help_text='Price per night, in the platform currency (0.01–100000.00)',
     )
     rooms = models.PositiveSmallIntegerField(
         validators=rooms_validator,
         db_index=True,
+        help_text='Number of rooms (1-20)'
     )
     property_type = models.CharField(
         max_length=20,
         choices=PropertyType.choices,
         default=PropertyType.APARTMENT,
         db_index=True,
+        help_text='Type of property: apartment, house or room'
     )
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(
+        default=True,
+        help_text='Toggle to show/hide the listing without deleting it'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # objects — усі записи (для адмінкі)
     objects = models.Manager()
-    # active — лише активні (для API)
     active = ActiveListingManager()
 
     class Meta:
@@ -53,7 +57,6 @@ class Listing(models.Model):
         return f'{self.title} ({self.city})'
 
     def is_owned_by(self, user):
-        """Перевірка власності обʼяви конкретним користувачем."""
         return self.owner_id == user.pk
 
     def save(self, *args, **kwargs):

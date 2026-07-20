@@ -1,7 +1,7 @@
 from django.db.models import Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
 from rest_framework import permissions as drf_permissions
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -15,6 +15,7 @@ from .serializers import BookingCreateSerializer, BookingSerializer
 
 @extend_schema_view(
     list=extend_schema(
+        tags=['Bookings'],
         summary='List own bookings',
         description=(
             'A tenant sees their own bookings; a landlord sees bookings '
@@ -23,16 +24,26 @@ from .serializers import BookingCreateSerializer, BookingSerializer
         ),
     ),
     create=extend_schema(
+        tags=['Bookings'],
         summary='Create a booking',
         description=(
             'Tenant role required. Cannot book your own listing, cannot '
             'start in the past, and dates must not overlap an existing '
             'pending/confirmed booking on the same listing. total_price '
-            'is calculated once (price × nights) and frozen — later '
+            'is calculated once (price * nights) and frozen — later '
             'price changes on the listing do not affect it.'
         ),
+        examples=[
+            OpenApiExample(
+                '10-night stay',
+                value={'listing': 1, 'start_date': '2026-09-01',
+                       'end_date': '2026-09-11'},
+                request_only=True,
+            ),
+        ],
     ),
     retrieve=extend_schema(
+        tags=['Bookings'],
         summary='Booking detail',
         description='Visible to the tenant who made it, or the owner of the listing.',
     ),
@@ -64,6 +75,13 @@ class BookingViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(tenant=self.request.user)
 
+    @extend_schema(
+        tags=['Bookings'],
+        summary='Confirm a booking',
+        description='Listing owner only. Only a PENDING booking can be confirmed.',
+        request=None,
+        responses={200: BookingSerializer, 400: None, 403: None}
+    )
     @action(detail=True, methods=['post'])
     def confirm(self, request, pk=None):
         booking = self.get_object()
@@ -81,6 +99,13 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking.save()
         return Response(BookingSerializer(booking).data)
 
+    @extend_schema(
+        tags=['Bookings'],
+        summary='Reject a booking',
+        description='Listing owner only. Only a PENDING booking can be rejected.',
+        request=None,
+        responses={200: BookingSerializer, 400: None, 403: None},
+    )
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         booking = self.get_object()
@@ -98,6 +123,17 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking.save()
         return Response(BookingSerializer(booking).data)
 
+    @extend_schema(
+        tags=['Bookings'],
+        summary='Cancel a booking',
+        description=(
+            'Tenant only. Allowed for PENDING or CONFIRMED bookings, '
+            'and only strictly before the start date — a booking that '
+            'has already started can no longer be cancelled.'
+        ),
+        request=None,
+        responses={200: BookingSerializer, 400: None, 403: None},
+    )
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
         booking = self.get_object()

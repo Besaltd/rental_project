@@ -12,16 +12,25 @@ class User(AbstractUser):
         TENANT = 'tenant', 'Mieter'
         LANDLORD = 'landlord', 'Vermieter'
 
-    email = models.EmailField(unique=True)
+    email = models.EmailField(
+        unique=True,
+        help_text='Used as the login identifier'
+    )
     role = models.CharField(
         max_length=20,
         choices=Role.choices,
         default=Role.TENANT,
+        help_text=(
+            'tenant: can browse and book listings. landlord: can create '
+            'and manage listings. Set at registration, editable via '
+            'PATCH /accounts/me/ afterwards'
+        ),
     )
     phone = models.CharField(
         max_length=20,
         blank=True,
         validators=[phone_validator],
+        help_text='7 to 15 digits, optionally starting with "+"'
     )
 
     USERNAME_FIELD = 'email'
@@ -67,7 +76,6 @@ class User(AbstractUser):
         return True
 
     def delete(self, using=None, keep_parents=False):
-        # М'яке видалення: позначає користувача як видаленого.
         self.is_deleted = True
         self.deleted_at = timezone.now()
         self.is_active = False

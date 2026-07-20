@@ -1,5 +1,5 @@
 from django.db import IntegrityError
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view, OpenApiExample
 from rest_framework import permissions as drf_permissions
 from rest_framework import viewsets, serializers
 
@@ -10,6 +10,7 @@ from .serializers import ReviewCreateSerializer, ReviewSerializer, ReviewUpdateS
 
 @extend_schema_view(
     list=extend_schema(
+        tags=['Reviews'],
         summary='List reviews',
         description=(
             'Public list of reviews. Use ?listing={id} to see reviews '
@@ -27,20 +28,32 @@ from .serializers import ReviewCreateSerializer, ReviewSerializer, ReviewUpdateS
         ],
     ),
     create=extend_schema(
+        tags=['Reviews'],
         summary='Leave a review',
         description=(
             'Only allowed for the tenant of a CONFIRMED booking whose '
             'stay is already over (end_date has passed), and only once '
             'per booking. See User.can_review for the exact rules.'
         ),
+        examples=[
+            OpenApiExample(
+                'Positive review',
+                value={'booking': 1, 'rating': 5,
+                       'comment': 'Great place, would stay again!'},
+                request_only=True,
+            ),
+        ],
     ),
     partial_update=extend_schema(
+        tags=['Reviews'],
         summary='Edit own review',
         description='Only rating and comment can be changed; author only.',
     ),
-    destroy=extend_schema(summary='Delete own review',
-                          description='Author only.'),
-    retrieve=extend_schema(summary='Review detail', description='Public.'),
+    destroy=extend_schema(
+        tags=['Reviews'], summary='Delete own review', description='Author only.',
+    ),
+    retrieve=extend_schema(
+        tags=['Reviews'], summary='Review detail', description='Public.'),
 )
 class ReviewViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']

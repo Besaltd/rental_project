@@ -147,6 +147,12 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Backend for a housing rental system: listings, search, reservations, reviews',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'TAGS': [
+        {'name': 'Auth', 'description': 'Registration, login, logout, password change.'},
+        {'name': 'Listings', 'description': 'Search, create, edit, and delete listings.'},
+        {'name': 'Bookings', 'description': 'Create, confirm, reject, and cancel bookings.'},
+        {'name': 'Reviews', 'description': 'Leave and read reviews for listings.'},
+    ],
 }
 
 

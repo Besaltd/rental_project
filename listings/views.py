@@ -1,6 +1,6 @@
 from django.db.models import ProtectedError, Q
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
 from rest_framework import permissions as drf_permissions
 from rest_framework import status, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -14,6 +14,7 @@ from .serializers import ListingSerializer, ListingWriteSerializer
 
 @extend_schema_view(
     list=extend_schema(
+        tags=['Listings'],
         summary='Search listings',
         description=(
             'Public. Only active listings are returned, except that an '
@@ -23,10 +24,27 @@ from .serializers import ListingSerializer, ListingWriteSerializer
         ),
     ),
     create=extend_schema(
+        tags=['Listings'],
         summary='Create a listing',
         description='Landlord role required. owner is set from the current user.',
+        examples=[
+            OpenApiExample(
+                'Cozy apartment in Berlin',
+                value={
+                    'title': 'Cozy studio near Alexanderplatz',
+                    'description': 'Bright, quiet studio, 5 min walk to the U-Bahn.',
+                    'city': 'Berlin',
+                    'address': 'Alexanderplatz 1',
+                    'price': '1650.00',
+                    'rooms': 1,
+                    'property_type': 'apartment',
+                },
+                request_only=True,
+            ),
+        ],
     ),
     partial_update=extend_schema(
+        tags=['Listings'],
         summary='Edit a listing',
         description=(
             'Owner only. Also used to toggle is_active — the API is the '
@@ -34,16 +52,19 @@ from .serializers import ListingSerializer, ListingWriteSerializer
         ),
     ),
     destroy=extend_schema(
+        tags=['Listings'],
         summary='Delete a listing',
         description=(
             'Owner only. Fails with 400 if the listing has any bookings — '
             'deactivate it instead (see PATCH is_active) rather than deleting.'
         ),
     ),
-    retrieve=extend_schema(summary='Listing detail', description='Public.'),
+    retrieve=extend_schema(
+        tags=['Listings'], summary='Listing detail', description='Public.'),
 )
 class ListingViewSet(viewsets.ModelViewSet):
 
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
     filterset_class = ListingFilter
     search_fields = ['title', 'description']
