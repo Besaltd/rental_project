@@ -4,6 +4,11 @@ from .models import Listing
 
 
 class ListingSerializer(serializers.ModelSerializer):
+    """
+    Full listing info for reading (list and detail).
+    owner is shown as a nested object (read-only) — the listing's
+    owner cannot be changed through this field, only read
+    """
 
     owner = UserSerializer(read_only=True)
 
@@ -18,6 +23,12 @@ class ListingSerializer(serializers.ModelSerializer):
 
 
 class ListingWriteSerializer(serializers.ModelSerializer):
+    """
+    Creating/editing a listing.
+    owner is not accepted from the frontend here — it's set in the
+    view from request.user (so nobody can create a listing on
+    someone else's behalf)
+    """
 
     class Meta:
         model = Listing

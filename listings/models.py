@@ -46,6 +46,7 @@ class Listing(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # objects — all records (admin panel), active — only active ones (public API)
     objects = models.Manager()
     active = ActiveListingManager()
 
@@ -57,8 +58,10 @@ class Listing(models.Model):
         return f'{self.title} ({self.city})'
 
     def is_owned_by(self, user):
+        """Check whether this specific user owns the listing"""
         return self.owner_id == user.pk
 
     def save(self, *args, **kwargs):
+        """Calls full_clean() before saving (see accounts.User.save)"""
         self.full_clean()
         super().save(*args, **kwargs)

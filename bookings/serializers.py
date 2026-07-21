@@ -10,7 +10,11 @@ from .models import Booking
 
 
 class BookingSerializer(serializers.ModelSerializer):
-
+    """
+    Full booking info for reading.
+    listing is shown as a nested object, tenant — id only
+    (to avoid pulling the full tenant profile where it's not needed).
+    """
     listing = ListingSerializer(read_only=True)
     is_completed = serializers.SerializerMethodField()
 
@@ -25,11 +29,18 @@ class BookingSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.BooleanField)
     def get_is_completed(self, obj):
+        # Derived flag (not a DB field): a confirmed booking whose
+        # end date has already passed
         return obj.status == Booking.Status.CONFIRMED and obj.end_date < timezone.localdate()
 
 
 class BookingCreateSerializer(serializers.ModelSerializer):
-
+    """
+    Creating a booking as a tenant.
+    listing is accepted as an id (PrimaryKeyRelatedField), tenant
+    is set in the view from request.user, status is always PENDING
+    on creation (only the owner can confirm)
+    """
     listing = serializers.PrimaryKeyRelatedField(queryset=Listing.active.all())
 
     class Meta:
@@ -38,6 +49,9 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'total_price']
 
     def validate(self, attrs):
+        # The model itself checks date overlap and range validity
+        # in Booking.clean(), but here we catch Django's ValidationError
+        # and convert it to a format DRF understands
         booking = Booking(
             listing=attrs['listing'],
             tenant=self.context['request'].user,

@@ -40,6 +40,11 @@ class Booking(models.Model):
             'rejected: declined by owner. cancelled: cancelled by tenant'
         ),
     )
+    # Snapshot of listing.price * number of nights, calculated once
+    # when the booking is created. Deliberately NOT recalculated from
+    # listing.price afterwards — if the owner changes the price later,
+    # past and pending bookings must keep the price the tenant actually
+    # agreed to
     total_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -53,16 +58,26 @@ class Booking(models.Model):
         ordering = ['-created_at']
 
     def clean(self):
+        """
+        Booking validation: valid date range, no back-dated creation,
+        and no overlap with other "live" bookings for the same listing
+        """
         if self.end_date <= self.start_date:
             raise ValidationError(
                 'The end date must be later than the start date.')
 
+        # Cannot create a booking with a start date in the past.
+        # Only checked on creation (self.pk is None) — editing an
+        # existing booking with a past date (e.g. a completed stay)
+        # should not break
         if self.pk is None and self.start_date < timezone.localdate():
             raise ValidationError('The start date cannot be in the past')
 
         if self.tenant_id is not None and self.listing.owner_id == self.tenant_id:
             raise ValidationError('You cannot book your own listing')
 
+        # The overlap check only considers "live" bookings (not
+        # cancelled or rejected) for the same listing.
         overlapping = Booking.objects.filter(
             listing=self.listing,
             status__in=[self.Status.PENDING, self.Status.CONFIRMED],
@@ -76,7 +91,10 @@ class Booking(models.Model):
             )
 
     def save(self, *args, **kwargs):
-
+        """
+        Calculates total_price on first save (creation only), then
+        calls full_clean() before saving (see accounts.User.save)
+        """
         if self.pk is None:
             nights = (self.end_date - self.start_date).days
             self.total_price = self.listing.price * Decimal(nights)

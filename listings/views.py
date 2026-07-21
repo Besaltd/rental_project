@@ -63,6 +63,13 @@ from .serializers import ListingSerializer, ListingWriteSerializer
         tags=['Listings'], summary='Listing detail', description='Public.'),
 )
 class ListingViewSet(viewsets.ModelViewSet):
+    """
+    GET    /api/v1/listings/          — list of active listings (with filters/search)
+    POST   /api/v1/listings/          — create a listing (landlord only)
+    GET    /api/v1/listings/{id}/     — listing detail
+    PATCH  /api/v1/listings/{id}/     — edit (owner only)
+    DELETE /api/v1/listings/{id}/     — delete (owner only)
+    """
 
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
@@ -73,6 +80,10 @@ class ListingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        # Publicly (and to anyone) only active listings are visible.
+        # An authenticated owner additionally sees their OWN inactive
+        # listings — otherwise the "deactivate" toggle would become
+        # irreversible through the API
 
         if user.is_authenticated:
             return Listing.objects.filter(Q(is_active=True) | Q(owner=user))
@@ -91,9 +102,13 @@ class ListingViewSet(viewsets.ModelViewSet):
         return [drf_permissions.AllowAny()]
 
     def perform_create(self, serializer):
+        # owner is set from request.user, not accepted from the frontend
         serializer.save(owner=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
+        # Listing.owner and Booking.listing use on_delete=PROTECT —
+        # without this try/except Django would raise ProtectedError
+        # and DRF would return a raw 500 instead of a clear response
         try:
             return super().destroy(request, *args, **kwargs)
         except ProtectedError:

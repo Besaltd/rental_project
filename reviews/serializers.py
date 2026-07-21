@@ -7,6 +7,7 @@ from .models import Review
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Full review info for reading"""
     author = UserSerializer(read_only=True)
 
     class Meta:
@@ -20,6 +21,11 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class ReviewCreateSerializer(serializers.ModelSerializer):
+    """
+    Creating a review as a tenant.
+    booking is accepted as an id, author and listing are set in the
+    view automatically (author = request.user, listing = booking.listing)
+    """
 
     booking = serializers.PrimaryKeyRelatedField(
         queryset=Booking.objects.all())
@@ -39,6 +45,12 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
 
 
 class ReviewUpdateSerializer(serializers.ModelSerializer):
+    """
+    Editing an existing review (PATCH).
+    Intentionally only allows changing rating/comment — booking,
+    listing, author are NOT writable, otherwise someone could swap
+    which booking/listing a review belongs to
+    """
     class Meta:
         model = Review
         fields = ['id', 'booking', 'listing', 'author', 'rating', 'comment']

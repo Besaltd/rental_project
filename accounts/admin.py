@@ -16,5 +16,5 @@ class UserAdmin(BaseUserAdmin):
     )
 
     def get_queryset(self, request) -> models.QuerySet:
-
+        # The admin panel should also see deleted users (not just objects)
         return self.model.all_objects.all()

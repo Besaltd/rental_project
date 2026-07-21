@@ -5,7 +5,7 @@ from .models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-
+    """ User profile: view and edit (name, phone, etc) """
     class Meta:
         model = User
         fields = [
@@ -16,7 +16,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-
+    """ 
+    Registers a new user.
+    Password is write-only, hashed via set_password; password
+    confirmation is checked via a separate password2 field """
     password = serializers.CharField(
         write_only=True,
         validators=[validate_password],
@@ -46,6 +49,12 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class ChangePasswordSerializer(serializers.Serializer):
+    """
+    POST /api/v1/accounts/me/change-password/
+    Not a ModelSerializer — there's no direct mapping to model fields
+    here, old_password is checked against the current hash rather
+    than being written directly.
+    """
     old_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(
         write_only=True, validators=[validate_password])
@@ -69,6 +78,12 @@ class ChangePasswordSerializer(serializers.Serializer):
         user = self.context['request'].user
         user.set_password(self.validated_data['new_password'])
         user.save()
+
+        # Blacklist every outstanding refresh token for this user so a
+        # leaked/stolen token stops working immediately after a
+        # password change. Access tokens themselves can't be revoked
+        # individually with simplejwt, but they're short-lived (5 hours)
+        # and won't be refreshable once the refresh token is blacklisted.
 
         from rest_framework_simplejwt.token_blacklist.models import (
             BlacklistedToken,

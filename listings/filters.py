@@ -4,6 +4,19 @@ from .models import Listing
 
 
 class ListingFilter(django_filters.FilterSet):
+    """
+    Filters for GET /api/v1/listings/?...
+
+    Example query params:
+    ?price_min=300&price_max=800
+    ?rooms_min=2&rooms_max=4
+    ?city=Hildesheim
+    ?property_type=apartment
+    ?search=cozy+studio       (searches title and description, separate SearchFilter)
+    ?ordering=price           (ascending)
+    ?ordering=-price          (descending)
+    ?ordering=-created_at     (newest first, this is also the default)
+    """
 
     price_min = django_filters.NumberFilter(
         field_name='price', lookup_expr='gte')

@@ -56,6 +56,14 @@ from .serializers import ReviewCreateSerializer, ReviewSerializer, ReviewUpdateS
         tags=['Reviews'], summary='Review detail', description='Public.'),
 )
 class ReviewViewSet(viewsets.ModelViewSet):
+    """
+    GET    /api/reviews/?listing={id}  — reviews for a specific listing (public)
+    POST   /api/reviews/               — leave a review (tenant with a
+                                          confirmed booking only, see
+                                          User.can_review)
+    PATCH  /api/reviews/{id}/          — edit (author only)
+    DELETE /api/reviews/{id}/          — delete (author only)
+    """
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
     def get_queryset(self):
@@ -80,6 +88,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return [drf_permissions.AllowAny()]
 
     def create(self, request, *args, **kwargs):
+        # can_review() in the serializer already checks for duplicates,
+        # but that check isn't atomic: two parallel requests could both
+        # pass validate_booking() before the first one is saved.
+        # The OneToOneField on booking protects at the DB level
+        # (IntegrityError) — here we just turn that into a clear 400
+        # instead of a raw 500.
         try:
             return super().create(request, *args, **kwargs)
         except IntegrityError:
@@ -88,5 +102,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
             )
 
     def perform_create(self, serializer):
+        # author and listing are set automatically:
+        # author — the current user, listing — from the chosen booking.
         booking = serializer.validated_data['booking']
         serializer.save(author=self.request.user, listing=booking.listing)

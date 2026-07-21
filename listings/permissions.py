@@ -2,6 +2,7 @@ from rest_framework import permissions
 
 
 class IsLandlord(permissions.BasePermission):
+    """Allows the action only to users with the 'landlord' role"""
 
     message = "Only 'landlords' can post listings"
 
@@ -10,6 +11,7 @@ class IsLandlord(permissions.BasePermission):
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
+    """ Reading is allowed for everyone. Editing/deleting — owner only """
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:

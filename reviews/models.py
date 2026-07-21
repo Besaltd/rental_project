@@ -43,6 +43,11 @@ class Review(models.Model):
         ordering = ['-created_at']
 
     def clean(self):
+        """
+        Review validation: the author must be the tenant on this
+        exact booking, the booking must be confirmed, and the stay
+        must actually be over (end_date has passed)
+        """
         from django.utils import timezone
 
         if self.booking_id and self.booking.tenant_id != self.author_id:
@@ -59,6 +64,7 @@ class Review(models.Model):
             )
 
     def save(self, *args, **kwargs):
+        """Calls full_clean() before saving (see accounts.User.save)"""
         self.full_clean()
         super().save(*args, **kwargs)
 

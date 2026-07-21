@@ -9,6 +9,8 @@ from .serializers import RegisterSerializer, UserSerializer, ChangePasswordSeria
 
 
 class RegisterView(generics.CreateAPIView):
+    """POST /api/accounts/register/ — register a new user"""
+
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
@@ -43,6 +45,8 @@ class ProfileView(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   generics.GenericAPIView,):
 
+    """GET/PATCH /api/accounts/me/ — view/edit own profile"""
+
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -59,6 +63,7 @@ class ProfileView(mixins.RetrieveModelMixin,
 
 
 class ChangePasswordView(APIView):
+    """POST /api/accounts/me/change-password/ — change password"""
     permission_classes = [permissions.IsAuthenticated]
 
     @extend_schema(

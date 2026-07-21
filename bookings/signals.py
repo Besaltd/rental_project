@@ -10,6 +10,13 @@ logger = logging.getLogger('bookings')
 
 @receiver(pre_save, sender=Booking)
 def stash_previous_status(sender, instance, **kwargs):
+    """
+    Before saving, remember the OLD status in a temporary instance
+    attribute (not a model field, doesn't hit the DB). The post_save
+    signal below compares it to the new value to figure out whether
+    the status itself changed (as opposed to some other field, e.g.
+    comment)
+    """
 
     if instance.pk:
         try:

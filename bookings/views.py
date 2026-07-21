@@ -49,6 +49,19 @@ from .serializers import BookingCreateSerializer, BookingSerializer
     ),
 )
 class BookingViewSet(viewsets.ModelViewSet):
+    """
+    GET    /api/v1/bookings/                — own bookings (tenant) or
+                                               bookings on own listings (landlord)
+    POST   /api/v1/bookings/                — create a booking (tenant only)
+    GET    /api/v1/bookings/{id}/           — booking detail
+    POST   /api/v1/bookings/{id}/confirm/   — confirm (listing owner only)
+    POST   /api/v1/bookings/{id}/reject/    — reject (listing owner only)
+    POST   /api/v1/bookings/{id}/cancel/    — cancel (tenant only)
+
+    Direct editing of dates/status via PATCH/PUT is not allowed —
+    status changes only happen through the explicit actions below,
+    to prevent disallowed transitions (e.g. a tenant confirming
+    their own booking)"""
 
     http_method_names = ['get', 'post', 'head', 'options']
     filter_backends = [DjangoFilterBackend]
@@ -73,6 +86,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         return [drf_permissions.IsAuthenticated()]
 
     def perform_create(self, serializer):
+        # tenant is set from request.user, status defaults to PENDING.
         serializer.save(tenant=self.request.user)
 
     @extend_schema(
@@ -147,6 +161,7 @@ class BookingViewSet(viewsets.ModelViewSet):
                 {'detail': 'This reservation is no longer active'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        # Cancellation is only allowed in advance — not on or after the start date
         if booking.start_date <= timezone.localdate():
             return Response(
                 {'detail': 'You can cancel your reservation only up until the check-in date.'},
