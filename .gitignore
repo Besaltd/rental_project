@@ -13,6 +13,7 @@ media/
 # Env 
 .env
 correctur.txt
+project_explaine.txt
 
 # Logs 
 logs/
